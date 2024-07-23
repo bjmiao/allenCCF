@@ -1,6 +1,8 @@
 %% Read all the images in the folder, in the format of xxxxx_s0XX
 % Set the directory path where the images are located
-image_dir = 'E:\Projects\brainslice\DeepSlice\DeepSlice\examples\AP_AMY_slide1\';
+image_dir = 'E:\Projects\brainslice\data\OLD\deepslice\';
+csv_file = [image_dir, '\MyResults.csv'];
+annotate_filename = 'clicked_points.csv';
 
 % Get a list of all files in the directory
 all_files = dir(image_dir);
@@ -17,13 +19,7 @@ end
 
 % Display the list of image files
 disp(image_files);
-
-%% Read the result of csv file
-csv_file = [image_dir, '\MyResults.csv'];
-
-% Read the CSV file into a MATLAB table
 data_table = readtable(csv_file);
-
 
 %% Then, display each image, and ask the user to click on the floursecne point
 
@@ -31,15 +27,19 @@ data_table = readtable(csv_file);
 for file_idx = 1:length(data_table.Filenames)
     % Load the image
     image_file = [image_dir, char(data_table.Filenames(file_idx))];
+    
     image_data = imread(image_file);
     [height, width, ~] = size(image_data);
+    % parse the path so that we only store the filename
+    [filepath, filename, ext] = fileparts(char(image_file));
+
     % Create the figure and axes with callbacks
     clicked_points = [];
     global probe_labeler
     probe_labeler = struct( ...
-        'filename', image_file, ...
+        'filename', [filename, ext], ...
         'now_labeling_probe', '1', ...
-        'save_result_path', ['.\click_points.csv'], ...
+        'save_result_path', [image_dir, annotate_filename], ...
         'clicked_probe_points', struct(), ...
         'height', height, ...
         'width', width ...

@@ -3,7 +3,6 @@
 annotation_volume_location = 'E:\Projects\brainslice\allenCCF\annotation_volume_10um_by_index.npy';
 structure_tree_location = 'E:\Projects\brainslice\allenCCF\structure_tree_safe_2017.csv';
 
-
 % --------------
 % key parameters
 % --------------
@@ -66,10 +65,10 @@ end
 % probePoints = load(fullfile(processed_images_folder, ['probe_points' probe_save_name_suffix]));
 % probePoints = [100, 100, 100; 100, 100, 200; 100, 100, 300];
 
-% probePoints = [566 174 540; 566 321 540; 564   491   540] %  vertical probe
-% probePoints = [340 403 540; 575 404 540;    828   403   540] % horisontal probe
+% probePoints = [566 174 540; 566 321 540; 564 491 540] %  vertical probe
+% probePoints = [340 403 540; 575 404 540; 828 403 540] % horisontal probe
 % probePoints = [559 393 1095; 559 393 1158; 559 393 1224]; % a-p probe
-
+load("E:\Projects\brainslice\data\OLD\deepslice\probePoints.mat", "probePoints")
 
 ProbeColors = .75*[1.3 1.3 1.3; 1 .75 0;  .3 1 1; .4 .6 .2; 1 .35 .65; .7 .7 .9; .65 .4 .25; .7 .95 .3; .7 0 0; .6 0 .7; 1 .6 0]; 
 % order of colors: {'white','gold','turquoise','fern','bubble gum','overcast sky','rawhide', 'green apple','purple','orange','red'};
@@ -79,13 +78,6 @@ fwireframe = [];
 active_probe_length = active_probe_length*100;
 
 probes = 1:size(probePoints,1);
-probes
-
-
-
-
-
-
 
 %% PLOT EACH PROBE -- FIRST FIND ITS TRAJECTORY IN REFERENCE SPACE
 
@@ -94,15 +86,15 @@ fwireframe = plotBrainGrid([], [], fwireframe, black_brain);
 hold on; 
 fwireframe.InvertHardcopy = 'off';
 
-for selected_probe = probes
+for selected_probe = 1:size(probePoints, 2)
     
 % get the probe points for the currently analyzed probe 
 if strcmp(plane,'coronal')
-    curr_probePoints = probePoints(:, [3 2 1]);
+    curr_probePoints = probePoints{selected_probe}(:, [3 2 1]);
 elseif strcmp(plane,'sagittal')
-    curr_probePoints = probePoints(:, [1 2 3]);
+    curr_probePoints = probePoints{selected_probe}(:, [1 2 3]);
 elseif strcmp(plane,'transverse')
-    curr_probePoints = probePoints(:, [1 3 2]);
+    curr_probePoints = probePoints{selected_probe}(:, [1 3 2]);
 end
 
 
@@ -131,7 +123,8 @@ if isnan(m(1))
     disp(['no points found for probe ' num2str(selected_probe)])
     continue
 end
-
+m, p, s
+curr_probePoints
 % ensure proper orientation: want 0 at the top of the brain and positive distance goes down into the brain
 if p(2)<0
     p = -p;
@@ -205,11 +198,11 @@ plot3(m(1)+p(1)*[1 probe_length_histo], m(3)+p(3)*[1 probe_length_histo], m(2)+p
 % ----------------------------------------------------------------
 
 % convert error radius into mm
-%error_length = round(probe_radius / 10);
-%
-% find and regions the probe goes through, confidence in those regions, and plot them
-%borders_table = plotDistToNearestToTip(m, p, av_plot, st, probe_length_histo, error_length, active_site_start, distance_past_tip_to_plot, show_parent_category, show_region_table, plane); % plots confidence score based on distance to nearest region along probe
-%title(['Probe ' num2str(selected_probe)],'color',ProbeColors(selected_probe,:))
+error_length = round(probe_radius / 10);
 
-%pause(.05)
+% find and regions the probe goes through, confidence in those regions, and plot them
+borders_table = plotDistToNearestToTip(m, p, av_plot, st, probe_length_histo, error_length, active_site_start, distance_past_tip_to_plot, show_parent_category, show_region_table, plane); % plots confidence score based on distance to nearest region along probe
+title(['Probe ' num2str(selected_probe)],'color',ProbeColors(selected_probe,:))
+
+pause(.05)
 end
