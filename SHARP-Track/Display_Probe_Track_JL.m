@@ -5,24 +5,24 @@
 %% ENTER PARAMETERS AND FILE LOCATION
 
 % file location of probe points
-processed_images_folder = 'D:\SHARPTrack\18N_10-12\processed';
+processed_images_folder = 'E:\Projects\brainslice\data\18N_10-12\processed';
 
 % directory of reference atlas files
-annotation_volume_location = 'C:\Users\augus\Documents\MATLAB\allen_Files\annotation_volume_10um_by_index.npy';
-structure_tree_location = 'C:\Users\augus\Documents\MATLAB\allen_Files\structure_tree_safe_2017.csv';
+annotation_volume_location = 'E:\Projects\brainslice\allenCCF\annotation_volume_10um_by_index.npy';
+structure_tree_location = 'E:\Projects\brainslice\allenCCF\structure_tree_safe_2017.csv';
 
 % name of the saved probe points
 % probe_save_name_suffix = 'electrode_track_1';
 probe_save_name_suffix = 'electrodetrack1';
 
 % either set to 'all' or a list of indices from the clicked probes in this file, e.g. [2,3]
-probes_to_analyze = 'all';  % [1 2]
+probes_to_analyze = 'all';  % [1 2] 'all'
 
 % --------------
 % key parameters
 % --------------
 % how far into the brain did you go from the surface, either for each probe or just one number for all -- in mm
-probe_lengths = 3.2912; 
+probe_lengths = 4; 
 
 % from the bottom tip, how much of the probe contained recording sites -- in mm
 active_probe_length = 3.84;
@@ -34,7 +34,7 @@ probe_radius = 100;
 show_parent_category = false; 
 
 % plot this far or to the bottom of the brain, whichever is shorter -- in mm
-distance_past_tip_to_plot = .5;
+distance_past_tip_to_plot = 0;%CUSTOM original is 0.5
 
 % set scaling e.g. based on lining up the ephys with the atlas
 % set to *false* to get scaling automatically from the clicked points
@@ -156,11 +156,11 @@ ann = 10;
 out_of_brain = false;
 while ~(ann==1 && out_of_brain) % && distance_stepped > .5*active_probe_length)
     m = m-p; % step 10um, backwards up the track
-    ann = av(round(m(1)),round(m(2)),round(m(3))); %until hitting the top
+    ann = av_plot(round(m(1)),round(m(2)),round(m(3))); %until hitting the top
     if strcmp(st.safe_name(ann), 'root')
         % make sure this isn't just a 'root' area within the brain
         m_further_up = m - p*20; % is there more brain 200 microns up along the track?
-        ann_further_up = av(round(max(1,m_further_up(1))),round(max(1,m_further_up(2))),round(max(1,m_further_up(3))));
+        ann_further_up = av_plot(round(max(1,m_further_up(1))),round(max(1,m_further_up(2))),round(max(1,m_further_up(3))));
         if strcmp(st.safe_name(ann_further_up), 'root')
             out_of_brain = true;
         end
@@ -185,7 +185,7 @@ if use_tip_to_get_reference_probe_length
         [depth, tip_index] = min(curr_probePoints(:,2));    
     end
     reference_probe_length_tip = sqrt(sum((curr_probePoints(tip_index,:) - m).^2)); 
-    
+    probe_length = reference_probe_length_tip/100; %CUSTOM ADD
     % and the corresponding scaling factor
     shrinkage_factor = (reference_probe_length_tip / 100) / probe_length;
     
@@ -222,8 +222,12 @@ plot3(m(1)+p(1)*[1 probe_length_histo], m(3)+p(3)*[1 probe_length_histo], m(2)+p
 error_length = round(probe_radius / 10);
 
 % find and regions the probe goes through, confidence in those regions, and plot them
-borders_table = plotDistToNearestToTip(m, p, av_plot, st, probe_length_histo, error_length, active_site_start, distance_past_tip_to_plot, show_parent_category, show_region_table, plane); % plots confidence score based on distance to nearest region along probe
+[borders, borders_table] = plotDistToNearestToTip(m, p, av_plot, st, probe_length_histo, error_length, active_site_start, distance_past_tip_to_plot, show_parent_category, show_region_table, plane); % plots confidence score based on distance to nearest region along probe
 title(['Probe ' num2str(selected_probe)],'color',ProbeColors(selected_probe,:))
-
+%CUSTOM CHANGE ABOVE also changed plotDistToNearestToTip() to get table as
+%variable in workspace
+ProbeInfo{selected_probe} = table2cell(borders_table); %CUSTOM
 pause(.05)
 end
+ProbeInfo{1+selected_probe} = processed_images_folder;
+save(strcat(processed_images_folder,'\depth_table.mat'),'ProbeInfo');

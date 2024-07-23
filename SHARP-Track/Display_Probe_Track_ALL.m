@@ -5,7 +5,7 @@
 %% ENTER PARAMETERS AND FILE LOCATION
 
 % file location of probe points
-processed_images_folder = 'D:\SHARPTrack\18N_10-12\processed';
+processed_images_folder = 'D:\SHARPTrack';
 
 % directory of reference atlas files
 annotation_volume_location = 'C:\Users\augus\Documents\MATLAB\allen_Files\annotation_volume_10um_by_index.npy';
@@ -22,7 +22,7 @@ probes_to_analyze = 'all';  % [1 2]
 % key parameters
 % --------------
 % how far into the brain did you go from the surface, either for each probe or just one number for all -- in mm
-probe_lengths = 3.2912; 
+probe_lengths = 4; 
 
 % from the bottom tip, how much of the probe contained recording sites -- in mm
 active_probe_length = 3.84;
@@ -55,7 +55,7 @@ probe_insertion_direction = 'down';
 show_region_table = true;
       
 % black brain?
-black_brain = true;
+black_brain = false;
 
 
 % close all
@@ -82,8 +82,11 @@ elseif strcmp(plane,'transverse')
 end
 
 % load probe points
+ProbeColors = [];
 probePoints = load(fullfile(processed_images_folder, ['probe_points' probe_save_name_suffix]));
-ProbeColors = .75*[1.3 1.3 1.3; 1 .75 0;  .3 1 1; .4 .6 .2; 1 .35 .65; .7 .7 .9; .65 .4 .25; .7 .95 .3; .7 0 0; .6 0 .7; 1 .6 0]; 
+for kk = 1:1:size(probePoints.pointList.pointList,1)
+    ProbeColors = [ProbeColors; rand(1,3)];
+end
 % order of colors: {'white','gold','turquoise','fern','bubble gum','overcast sky','rawhide', 'green apple','purple','orange','red'};
 fwireframe = [];
 
@@ -171,10 +174,10 @@ end
 figure(fwireframe);
 
 % plot probe points
-hp = plot3(curr_probePoints(:,1), curr_probePoints(:,3), curr_probePoints(:,2), '.','linewidth',2, 'color',[ProbeColors(selected_probe,:) .2],'markers',10);
+%hp = plot3(curr_probePoints(:,1), curr_probePoints(:,3), curr_probePoints(:,2), '.','linewidth',2, 'color', [ProbeColors(selected_probe,:) .2],'markers',10);
 
 % plot brain entry point
-plot3(m(1), m(3), m(2), 'r*','linewidth',1)
+%plot3(m(1), m(3), m(2), 'r*','linewidth',1)
 
 % use the deepest clicked point as the tip of the probe, if no scaling provided (scaling_factor = false)
 if use_tip_to_get_reference_probe_length
@@ -208,8 +211,8 @@ active_probe_position = round([active_site_start  probe_length_histo]);
 
 % plot line the length of the active probe sites in reference space
 plot3(m(1)+p(1)*[active_probe_position(1) active_probe_position(2)], m(3)+p(3)*[active_probe_position(1) active_probe_position(2)], m(2)+p(2)*[active_probe_position(1) active_probe_position(2)], ...
-    'Color', ProbeColors(selected_probe,:), 'LineWidth', 1);
-% plot line the length of the entire probe in reference space
+    'Color', ProbeColors(selected_probe,:), 'LineWidth', 3);
+%plot line the length of the entire probe in reference space
 plot3(m(1)+p(1)*[1 probe_length_histo], m(3)+p(3)*[1 probe_length_histo], m(2)+p(2)*[1 probe_length_histo], ...
     'Color', ProbeColors(selected_probe,:), 'LineWidth', 1, 'LineStyle',':');
 
@@ -219,11 +222,11 @@ plot3(m(1)+p(1)*[1 probe_length_histo], m(3)+p(3)*[1 probe_length_histo], m(2)+p
 % ----------------------------------------------------------------
 
 % convert error radius into mm
-error_length = round(probe_radius / 10);
+%error_length = round(probe_radius / 10);
 
 % find and regions the probe goes through, confidence in those regions, and plot them
-borders_table = plotDistToNearestToTip(m, p, av_plot, st, probe_length_histo, error_length, active_site_start, distance_past_tip_to_plot, show_parent_category, show_region_table, plane); % plots confidence score based on distance to nearest region along probe
-title(['Probe ' num2str(selected_probe)],'color',ProbeColors(selected_probe,:))
+%borders_table = plotDistToNearestToTip(m, p, av_plot, st, probe_length_histo, error_length, active_site_start, distance_past_tip_to_plot, show_parent_category, show_region_table, plane); % plots confidence score based on distance to nearest region along probe
+%title(['Probe ' num2str(selected_probe)],'color',ProbeColors(selected_probe,:))
 
 pause(.05)
 end

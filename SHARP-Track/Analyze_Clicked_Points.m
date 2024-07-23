@@ -6,7 +6,7 @@
 %% ENTER PARAMETERS AND FILE LOCATION
 
 % file location of object points
-save_folder = 'C:\Drive\Histology\brainX\processed';
+save_folder = 'D:\SHARPTrack\processed';
 
 % directory of reference atlas files
 annotation_volume_location = 'C:\Drive\Histology\for tutorial\annotation_volume_10um_by_index.npy';

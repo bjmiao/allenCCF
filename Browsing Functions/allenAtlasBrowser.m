@@ -1,6 +1,6 @@
 
 function f = allenAtlasBrowser(f, templateVolume, annotationVolume, structureTree, save_location, save_suffix, plane)
-% Browser for the allen atlas ccf data in matlab.
+% Browser for the allen atlas ccf data in matlab
 %
 % Inputs templateVolume, annotationVolume, and structureTree are the data describing the atlas.
 % The annotation volume should be the "by_index" version
