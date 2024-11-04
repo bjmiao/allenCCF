@@ -630,7 +630,7 @@ switch key_letter
             
             % Try to delete only the most recent point
             ud.current_pointList_for_transform = ud.current_pointList_for_transform(1:end-1,:);
-            ud_slice.pointList = ud_slice.pointList(1:end-1,:); 
+            % ud_slice.pointList = ud_slice.pointList(1:end-1,:); 
             set(slice_figure, 'UserData', ud_slice);
             if ud.pointHands_for_transform
                 % remove circle for most revent point
@@ -642,7 +642,7 @@ switch key_letter
                 end
             end
             
-            disp('transform point deleted');
+            disp('AtlasViewer: transform point deleted');
             
         elseif ud.currentProbe
             ud.pointList{ud.currentProbe,1} = ud.pointList{ud.currentProbe,1}(1:end-1,:);

@@ -91,7 +91,7 @@ elseif strcmp(keydata.Key,'d')
     set(ud.pointHands(end), 'Visible', 'off'); 
     ud.pointHands = ud.pointHands(1:end-1); 
     ud.pointList = ud.pointList(1:end-1,:); 
-    disp('transform point deleted')
+    disp('SliceViewer: transform point deleted')
 % t -- transform point mode
 elseif strcmp(keydata.Key,'t')
     ud.getPoint = ~ud.getPoint;
