@@ -95,7 +95,9 @@ elseif strcmp(keydata.Key,'d')
 % t -- transform point mode
 elseif strcmp(keydata.Key,'t')
     ud.getPoint = ~ud.getPoint;
-        if ud.getPoint; disp('transform point mode!'); end
+        if ud.getPoint;
+            disp('SliceViewer: transform point mode ON');
+        else; disp('SliceViewer: transform point mode OFF');end
 else
 % otherwise -- call function to atlas browser       
     figure(f);

@@ -66,7 +66,7 @@ set(ud.im, 'ButtonDownFcn', @(f,k)atlasClickCallback(f, k, slice_figure, save_lo
 ud.bregmaText = annotation('textbox', [0 0.95 0.4 0.05], ...
     'String', '[coords]', 'EdgeColor', 'none', 'Color', 'k');
 
-ud.angleText = annotation('textbox', [.7 0.95 0.4 0.05], ...
+ud.angleText = annotation('textbox', [.68 0.95 0.4 0.05], ...
     'EdgeColor', 'none', 'Color', 'k');
 
 allData.tv = templateVolume;
@@ -346,7 +346,7 @@ switch key_letter
         ud.loaded = false;
         
         if ud.getPoint_for_transform
-            disp('transform point mode on'); 
+            disp('AtlasViewer: transform point mode ON');
 
             ud.currentProbe = 0;
 
@@ -359,7 +359,7 @@ switch key_letter
                 template_point = 1; template_points_shown = 0;
                 updateBoundaries(f,ud, allData); ud = get(f, 'UserData');
             end
-        else; disp('transform point mode OFF');    
+        else; disp('AtlasViewer: transform point mode OFF');
         end     
 % a -- toggle viewing of annotation boundaries  
     case 'a' 
