@@ -139,6 +139,8 @@ function ud = updateSliceImage(ud)
         if ~isempty(transform_data.transform_points{2})
             ud.pointList = transform_data.transform_points{2};
             title_ending = ' (transform points loaded)';
-        end       
+        end
+    else
+        ud.pointList = [];
     end
     title(['Slice Viewer -- Slice ' num2str(ud.slice_num) '/' num2str(ud.total_num_files) title_ending])    

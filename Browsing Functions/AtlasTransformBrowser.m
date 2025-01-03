@@ -51,7 +51,7 @@ ud.slice_at_shift_start = 1;
 ud.text = [];
 
 reference_image = squeeze(templateVolume(ud.currentSlice,:,:));
-ud.im = plotTVslice(reference_image);
+ud.im = plotTVslice(reference_image); % The actual window handler shown in Atlas Viewerim
 ud.ref_size = size(reference_image);
 ud.ref = uint8(squeeze(templateVolume(ud.currentSlice,:,:)));
 ud.curr_im = uint8(squeeze(templateVolume(ud.currentSlice,:,:)));
@@ -736,7 +736,7 @@ elseif ud.scrollMode == 3
   ud.showOverlay = 0;
   delete(ud.overlayAx); ud.overlayAx = [];  
   ud_slice = get(slice_figure, 'UserData');
-  
+
   try
     ud.slice_shift = ud.slice_shift-evt.VerticalScrollCount;
     slice_name = ud_slice.processed_image_names{ud.slice_at_shift_start+ud.slice_shift}(1:end-4);
@@ -745,67 +745,65 @@ elseif ud.scrollMode == 3
     slice_name = ud_slice.processed_image_names{ud.slice_at_shift_start+ud.slice_shift}(1:end-4);
   end
   folder_transformations = fullfile(save_location, ['transformations' filesep]);
-    
-    % set probe points from other slices invisible and from this slice visible
-    for probe = 1:size(ud.pointList,1)
-        set(ud.pointHands{probe, 3}(:),'Visible','off'); ud.pointHands{probe, 3} = [];
-        for probe_point = 1:size(ud.pointList{probe,1},1)
-            slice_point_belongs_to = ud.pointList{probe, 2}(probe_point);
-            if slice_point_belongs_to == ud.slice_at_shift_start+ud.slice_shift
-                set(ud.pointHands{probe, 1}(probe_point), 'Visible', 'on');
-            else
-                set(ud.pointHands{probe, 1}(probe_point), 'Visible', 'off');
-            end
 
-        end
-    end  
-  
+  % set probe points from other slices invisible and from this slice visible
+  for probe = 1:size(ud.pointList,1)
+      set(ud.pointHands{probe, 3}(:),'Visible','off'); ud.pointHands{probe, 3} = [];
+      for probe_point = 1:size(ud.pointList{probe,1},1)
+          slice_point_belongs_to = ud.pointList{probe, 2}(probe_point);
+          if slice_point_belongs_to == ud.slice_at_shift_start+ud.slice_shift
+              set(ud.pointHands{probe, 1}(probe_point), 'Visible', 'on');
+          else
+              set(ud.pointHands{probe, 1}(probe_point), 'Visible', 'off');
+          end
+      end
+  end  
+
+  ud.current_pointList_for_transform = zeros(0,2);
+  try; load([folder_transformations slice_name '_transform_data.mat']);
+
+    ud.clicked = false;
+
+    % load transform data
+    transform_data = load(fullfile(folder_transformations, [slice_name '_transform_data.mat']));  
+    transform_data = transform_data.save_transform;
+
+    % load new transform
+    ud.transform = transform_data.transform;
+
+    if ~isempty(transform_data.transform_points{1}) && ~isempty(transform_data.transform_points{2})
+        ud.current_pointList_for_transform = transform_data.transform_points{1};
+        ud_slice.pointList = transform_data.transform_points{2};
+    else
+        ud_slice.pointList = [];           
+    end
+    set(slice_figure, 'UserData', ud_slice);
+
+    % load allen ref location
+    ud.currentSlice = transform_data.allen_location{1}; ud.currentAngle = transform_data.allen_location{2};
+
+    % create transformed histology image
+    ud.curr_slice_trans = imread([folder_transformations slice_name '_transformed.tif']);
+
+    % update figure
+    update.VerticalScrollCount = 0; set(f, 'UserData', ud);
+    ud.loaded = true;
+
+    ud.curr_slice_num = ud.slice_at_shift_start+ud.slice_shift;
+
+    ud.histology_overlay = 1;
+
+    set(ud.text,'Visible','off');
+    fill([5 5 250 250],[5 50 50 5],[0 0 0]); ud.text(end+1) = text(5,15,['Slice ' num2str(ud.slice_at_shift_start+ud.slice_shift)],'color','white');
+  catch;
+    % if no transform, just show reference
+    ud.histology_overlay = 0;
     ud.current_pointList_for_transform = zeros(0,2);
-    try; load([folder_transformations slice_name '_transform_data.mat']);
-       
-        ud.clicked = false;
-        
-        % load transform data
-        transform_data = load(fullfile(folder_transformations, [slice_name '_transform_data.mat']));  
-        transform_data = transform_data.save_transform;
-        
-        % load new transform
-        ud.transform = transform_data.transform;
-        
-        if ~isempty(transform_data.transform_points{1}) && ~isempty(transform_data.transform_points{2})
-            ud.current_pointList_for_transform = transform_data.transform_points{1};
-            ud_slice.pointList = transform_data.transform_points{2};
-        else
-            ud_slice.pointList = [];           
-        end
-        set(slice_figure, 'UserData', ud_slice);
-        
-        % load allen ref location
-        ud.currentSlice = transform_data.allen_location{1}; ud.currentAngle = transform_data.allen_location{2};
-
-        % create transformed histology image
-        ud.curr_slice_trans = imread([folder_transformations slice_name '_transformed.tif']);
-       
-        % update figure
-        update.VerticalScrollCount = 0; set(f, 'UserData', ud);
-        ud.loaded = true;
-        
-        ud.curr_slice_num = ud.slice_at_shift_start+ud.slice_shift;
-        
-        ud.histology_overlay = 1;
-        
-        set(ud.text,'Visible','off');
-        fill([5 5 250 250],[5 50 50 5],[0 0 0]); ud.text(end+1) = text(5,15,['Slice ' num2str(ud.slice_at_shift_start+ud.slice_shift)],'color','white');
-    catch;
-        % if no transform, just show reference
-        ud.histology_overlay = 0;
-        ud.current_pointList_for_transform = zeros(0,2);
-        set(ud.im, 'CData', ud.ref);
-        ud.curr_im = ud.ref; set(f, 'UserData', ud);   
-        set(ud.text,'Visible','off');
-        fill([5 5 250 250],[5 50 50 5],[0 0 0]); ud.text(end+1) = text(5,15,['Slice ' num2str(ud.slice_at_shift_start+ud.slice_shift) ' - no transform'],'color','white');        
-    end  
-        
+    set(ud.im, 'CData', ud.ref);
+    ud.curr_im = ud.ref; set(f, 'UserData', ud);   
+    set(ud.text,'Visible','off');
+    fill([5 5 250 250],[5 50 50 5],[0 0 0]); ud.text(end+1) = text(5,15,['Slice ' num2str(ud.slice_at_shift_start+ud.slice_shift) ' - no transform'],'color','white');        
+  end 
 end  
 
 % update coordinates at the top
@@ -841,15 +839,89 @@ if ud.currentAngle(1) == 0 && ud.currentAngle(2) == 0
 % ---------------------------
 % if angle, angle the atlas
 % ---------------------------
-else 
+else
+  % The atlas angling algorithm based on spline interpolation. Open your 'Paint'
+  % software, draw a thin, inclined line and zoom in. There will be 'stepwise' pixel
+  % layout to mimic an inclined line with limited resolution.
+  % For example, if we want the line to move 10 pixels in Left-Right
+  % direction and 3 pixels in Up-Down direction, the line will be like.
+  %         ---     % fill map(3, 8:10)
+  %     ----        % fill map(2, 4:7)
+  %  ---            % fill map(1, 1:3)
+  % Algorithmically, we can iterate over x (1-3), decide the corresponding
+  % start_y and end_y coordinates (1-3 for 1, 4-7 for 2, 8-10 for 3), and
+  % paint the pixels
+  %
+  % Here likewise, to decide each pixel of the slice given an angle (which is a
+  % 2D problem), we:
+  %     (1) iterate over all the indices across both DV and ML directions
+  %     (2) decide the boundary of subregion of the image that this pair of
+  %         (DV, ML) index should update (similar to 1-3, 4-7 in the example
+  %         above)
+  %     (3) calculate offset value in the atlas based on the DV/ML index
+  %     (4) update the image pixel accordingly.
+  % Detail for each step:
+  %     (1) The range of index along a direction is [-Angle, +Angle].
+  %          E.g. if DV angle is 3, then 7 indices will be iterated
+  %     (2) Given the number of index of each direction, the image is evenly
+  %         subdivided into #index compartments along that direction. E.g.
+  %         if DV angle = 3, ML angle = 7, then image will be divided like
+  %   ------------------------------------
+  %   |    |    |    |    |    |    |    |   
+  %   |    |    |    |    |    |    |    |  <--> ML angle
+  %   |    |    |    |    |    |    |    |   
+  %   ------------------------------------
+  %   |    |    |    |    |    |    |    |   ∧  
+  %   |    |    |    |    |    |    |    |   |
+  %   |    |    |    |    |    |    |    |   |  DV angle
+  %   ------------------------------------   ∨
+  %   |    |    |    |    |    |    |    |   
+  %   |    |    |    |    |    |    |    |   
+  %   |    |    |    |    |    |    |    |   
+  %   ------------------------------------
+  %     (3) Then we calculate the corresponding voxel in the Allen Atlas.
+  %     Consider #slice, #DV_angle, #ML_angle, we will add an offset to
+  %     #slice to each subregion to get the actual slice it belongs to, on
+  %     both DV and ML angle.
+  %   ------------------------------------
+  %   | -3 | -2 | -1 |  0 |  1 |  2 |  3 |   
+  %   |    |    |    |    |    |    |    |  <--> ML angle
+  %   | -1 | -1 | -1 | -1 | -1 | -1 | -1 |
+  %   ------------------------------------  ∧
+  %   | -3 | -2 | -1 |  0 |  1 |  2 |  3 |  |  
+  %   |    |    |    |    |    |    |    |  |
+  %   |  0 |  0 |  0 |  0 |  0 |  0 |  0 |  ∨  DV angle
+  %   ------------------------------------    ------  
+  %   | -3 | -2 | -1 |  0 |  1 |  2 |  3 |    | ML |  offset  
+  %   |    |    |    |    |    |    |    |    |  + | 
+  %   |  1 |  1 |  1 |  1 |  1 |  1 |  1 |    | DV |  offset
+  %   ------------------------------------    ------  
+  %  Then we add the two offsets up, to get the actual slice number offset:
+  %   ------------------------------------
+  %   |    |    |    |    |    |    |    |
+  %   | -4 | -3 | -2 | -1 | 0  |  1 |  2 |  <--> ML angle
+  %   |    |    |    |    |    |    |    |
+  %   ------------------------------------  ∧
+  %   |    |    |    |    |    |    |    |  |
+  %   | -3 | -2 | -1 | 0  |  1 |  2 |  3 |  |
+  %   |    |    |    |    |    |    |    |  ∨  DV angle
+  %   ------------------------------------    ---------
+  %   |    |    |    |    |    |    |    |    |       |
+  %   | -2 | -1 |  0 |  1 |  2 |  3 |  4 |    | Total |  + #slice
+  %   |    |    |    |    |    |    |    |    |       |
+  %   ------------------------------------    ---------
+  %     (4) Update the following array:
+  %         angle_slice (the the Allen Atlas value for each pixel, 0 if not within atlas)
+  %         im_annotation (the region notation for each pixel, 1 if not within atlas)
+  %         offset_map (just the 3x7 matrix above)
+  
   
   image_size = size(squeeze(allData.av(ud.currentSlice,:,:)));
-  angle_slice = zeros(image_size);
+  angle_slice = zeros(image_size); % The color intensity in the atlas
   
   if ud.currentAngle(1)==0; offset_DV = 0;
   else; offset_DV = -ud.currentAngle(1):sign(ud.currentAngle(1)):ud.currentAngle(1);
   end; start_index_DV = 1; 
- 
   
   % loop through AP offsets
   num_DV_iters_add_ind = floor( (image_size(1) - floor( image_size(1) / length(offset_DV))*length(offset_DV)) / 2);
@@ -863,37 +935,44 @@ else
           end_index_DV = start_index_DV + floor( image_size(1) / length(offset_DV)) - 1;
       end
       
-       if ud.currentAngle(2)==0;  offset_ML = 0;
-       else; offset_ML = -ud.currentAngle(2):sign(ud.currentAngle(2)):ud.currentAngle(2);
-       end; start_index_ML = 1;
-    % nested: loop through ML offsets
-  num_ML_iters_add_ind = floor( (image_size(2) - floor( image_size(2) / length(offset_ML))*length(offset_ML)) / 2);
-  for curr_ML_iter = 1:length(offset_ML)
-      cur_offset_ML = offset_ML(curr_ML_iter);
-      if cur_offset_ML == ud.currentAngle(2)
-          end_index_ML = image_size(2);
-      elseif curr_ML_iter <= num_ML_iters_add_ind  || length(offset_ML - curr_ML_iter) < num_ML_iters_add_ind
-          end_index_ML = start_index_ML + floor( image_size(2) / length(offset_ML));
-      else
-          end_index_ML = start_index_ML + floor( image_size(2) / length(offset_ML)) - 1;
+      if ud.currentAngle(2)==0;  offset_ML = 0;
+        else; offset_ML = -ud.currentAngle(2):sign(ud.currentAngle(2)):ud.currentAngle(2);
       end
+      start_index_ML = 1;
+      % nested: loop through ML offsets
+      num_ML_iters_add_ind = floor( (image_size(2) - floor( image_size(2) / length(offset_ML))*length(offset_ML)) / 2);
+      for curr_ML_iter = 1:length(offset_ML)
+          cur_offset_ML = offset_ML(curr_ML_iter);
+          if cur_offset_ML == ud.currentAngle(2)
+              end_index_ML = image_size(2);
+          elseif curr_ML_iter <= num_ML_iters_add_ind  || length(offset_ML - curr_ML_iter) < num_ML_iters_add_ind
+              end_index_ML = start_index_ML + floor( image_size(2) / length(offset_ML));
+          else
+              end_index_ML = start_index_ML + floor( image_size(2) / length(offset_ML)) - 1;
+          end
+
+          % update current slice
+          try
+              sliceAfterOffset = ud.currentSlice + cur_offset_DV + cur_offset_ML;
+              if sliceAfterOffset > size(allData.tv, 1) || sliceAfterOffset < 1
+                  angle_slice(start_index_DV:end_index_DV, start_index_ML:end_index_ML) = 0;
+                  ud.im_annotation(start_index_DV:end_index_DV,start_index_ML:end_index_ML) = 1;
+              else
+                  angle_slice(start_index_DV:end_index_DV, start_index_ML:end_index_ML) = ...
+                  squeeze(allData.tv(sliceAfterOffset,start_index_DV:end_index_DV,start_index_ML:end_index_ML));
+                  ud.im_annotation(start_index_DV:end_index_DV,start_index_ML:end_index_ML) = ...
+                  squeeze(allData.av(sliceAfterOffset, start_index_DV:end_index_DV,start_index_ML:end_index_ML));
+              end    
+          catch
+              disp('Something wrong')
+          end
           
-      % update current slice
-      try
-     angle_slice(start_index_DV:end_index_DV, start_index_ML:end_index_ML) = ...
-         squeeze(allData.tv(ud.currentSlice + cur_offset_DV + cur_offset_ML,start_index_DV:end_index_DV,start_index_ML:end_index_ML));
-      catch
-          disp('')
+          ud.offset_map(start_index_DV:end_index_DV, start_index_ML:end_index_ML) = cur_offset_DV + cur_offset_ML;
+
+          start_index_ML = end_index_ML + 1;
       end
-    
-      ud.im_annotation(start_index_DV:end_index_DV,start_index_ML:end_index_ML) = squeeze(allData.av(ud.currentSlice + cur_offset_DV + cur_offset_ML,...
-                                                            start_index_DV:end_index_DV,start_index_ML:end_index_ML));
-      ud.offset_map(start_index_DV:end_index_DV, start_index_ML:end_index_ML) = cur_offset_DV + cur_offset_ML;
-      
-      start_index_ML = end_index_ML + 1;
-    end
       start_index_DV = end_index_DV + 1;
-  end     
+  end
   if ud.viewColorAtlas
       set(ud.im, 'CData', ud.im_annotation);
   elseif ~ud.showAtlas  
@@ -1177,7 +1256,8 @@ end
 % find the region being hovered on
 % ---------------------------------
 function [name, acr, ann] = getPixelAnnotation(allData, pixel, currentSlice)
-if pixel(1)>0&&pixel(1)<size(allData.av,2) && pixel(2)>0&&pixel(2)<=size(allData.av,3)
+if pixel(1)>0 && pixel(1)<size(allData.av,2) && pixel(2)>0&&pixel(2)<=size(allData.av,3) ...
+        && currentSlice > 0 && currentSlice < size(allData.av, 1)
     ann = allData.av(currentSlice,pixel(1),pixel(2));
     name = allData.st.safe_name(ann);
     acr = allData.st.acronym(ann);

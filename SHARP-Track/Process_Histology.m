@@ -8,11 +8,11 @@
 % * remember to run one cell at a time, instead of the whole script at once *
 
 % directory of histology images
-image_folder = 'D:\SharpTRACK\AP_AMY_test';
+image_folder = 'D:\Harini\BrainSlice\13T';
 
 % directory to save the processed images -- can be the same as the above image_folder
 % results will be put inside a new folder called 'processed' inside of this image_folder
-save_folder = 'D:\SharpTRACK\AP_AMY_test';
+save_folder = 'D:\Harini\BrainSlice\13T';
 
 % name of images, in order anterior to posterior or vice versa
 % once these are downsampled they will be named ['original name' '_processed.tif']
@@ -30,7 +30,9 @@ use_already_downsampled_image = false;
 % pixel size parameters: microns_per_pixel of large images in the image
 % folder (if use_already_downsampled_images is set to false);
 % microns_per_pixel_after_downsampling should typically be set to 10 to match the atlas
-microns_per_pixel = 9.43225;
+
+% microns_per_pixel = 9.43225;
+microns_per_pixel = 3.77442;
 microns_per_pixel_after_downsampling = 10;
 
 
@@ -41,7 +43,7 @@ microns_per_pixel_after_downsampling = 10;
 % if the images are cropped (image_file_are_individual_slices = false),
 % name to save cropped slices as; e.g. the third cropped slice from the 2nd
 % image containing many slices will be saved as: save_folder/processed/save_file_name02_003.tif
-save_file_name = 'AP_AMY_test';
+save_file_name = '13T';
 
 % increase gain if for some reason the images are not bright enough
 gain = 1; 
